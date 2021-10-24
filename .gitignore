@@ -1,0 +1,4 @@
+**/main.sym
+venv
+.pytest_cache
+.idea

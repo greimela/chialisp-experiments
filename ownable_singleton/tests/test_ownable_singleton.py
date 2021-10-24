@@ -74,15 +74,14 @@ class TestOwnableSingleton:
             )
             launcher_id = launcher_coin.name()
 
-            singleton_puzzle = singleton_top_layer.puzzle_for_singleton(launcher_id, create_inner_puzzle(alice.pk_))
-            print(singleton_puzzle.get_tree_hash())
+            alice_singleton_puzzle = singleton_top_layer.puzzle_for_singleton(launcher_id, create_inner_puzzle(alice.pk_))
             singleton_coin: Coin = next(x for x in result['additions'] if
                                         x.amount == CONTRIBUTION_AMOUNT and x.puzzle_hash != launcher_coin.puzzle_hash)
 
             lineage_proof: LineageProof = singleton_top_layer.lineage_proof_for_coinsol(launcher_coinsol)  # noqa
 
-            new_owner_pubkey = alice.pk_
-            inner_solution: Program = Program.to([create_inner_puzzle(alice.pk_).get_tree_hash()])
+            new_owner_pubkey = bob.pk_
+            inner_solution: Program = Program.to([new_owner_pubkey])
 
             full_solution: Program = singleton_top_layer.solution_for_singleton(
                 lineage_proof,
@@ -91,7 +90,7 @@ class TestOwnableSingleton:
             )
 
             owner_change_spend = await alice.spend_coin(
-                CoinWrapper.from_coin(singleton_coin, puzzle=singleton_puzzle), pushtx=False, args=full_solution)
+                CoinWrapper.from_coin(singleton_coin, puzzle=alice_singleton_puzzle), pushtx=False, args=full_solution)
 
             print(owner_change_spend.coin_spends)
             result = await network.push_tx(owner_change_spend)
@@ -118,8 +117,9 @@ class TestOwnableSingleton:
                 inner_solution,
             )
 
-            owner_change_spend = await alice.spend_coin(
-                CoinWrapper.from_coin(singleton_coin, puzzle=singleton_puzzle), pushtx=False, args=full_solution)
+            bob_singleton_puzzle = singleton_top_layer.puzzle_for_singleton(launcher_id, create_inner_puzzle(bob.pk_))
+            owner_change_spend = await bob.spend_coin(
+                CoinWrapper.from_coin(singleton_coin, puzzle=bob_singleton_puzzle), pushtx=False, args=full_solution)
 
             result = await network.push_tx(owner_change_spend)
 
